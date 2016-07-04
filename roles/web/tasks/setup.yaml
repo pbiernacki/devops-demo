@@ -1,0 +1,67 @@
+---
+  - name: Install nginx package
+    yum:
+      name: nginx
+      state: present
+
+  - name: Create /etc/nginx/sites.d directory
+    file:
+      name: /etc/nginx/sites.d
+      state: directory
+      owner: root
+      group: root
+      mode: 0755
+      seuser: system_u
+      serole: object_r
+      setype: httpd_config_t
+
+# Appservers vhost configuration must be first because of braindead
+# Ansible template verify feature that require to pass %s which is
+# expanded to the full path to the template but we do want to check
+# the whole nginx configuration!
+  - name: Install application server configuration for nginx
+    template:
+      src: templates/etc/nginx/sites.d/app.conf.j2
+      dest: /etc/nginx/sites.d/app.conf
+      owner: root
+      group: root
+      mode: 0644
+      seuser: system_u
+      serole: object_r
+      setype: httpd_config_t
+    notify:
+      - Restart nginx
+
+  - name: Adjust main nginx configuration
+    template:
+      src: templates/etc/nginx/nginx.conf.j2
+      dest: /etc/nginx/nginx.conf
+      owner: root
+      group: root
+      mode: 0644
+      seuser: system_u
+      serole: object_r
+      setype: httpd_config_t
+      validate:
+        'nginx -t -c %s'
+    notify:
+      - Restart nginx
+
+  - name: Enable nginx service
+    service:
+      name: nginx
+      enabled: yes
+      state: started
+
+  - name: Allow connections on 80/tcp
+    firewalld:
+      service: http
+      permanent: true
+      immediate: true
+      state: enabled
+
+  - name: Allow nginx to initialise connections to app servers
+    seboolean:
+      name: httpd_can_network_connect
+      state: true
+      persistent: yes

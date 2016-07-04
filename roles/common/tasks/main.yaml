@@ -1,0 +1,38 @@
+---
+  - name: Install common /etc/hosts file
+    template:
+      src: templates/etc/hosts.j2
+      dest: /etc/hosts
+      owner: root
+      group: root
+      mode: 0644
+      seuser: system_u
+      serole: object_r
+      setype: net_conf_t
+
+  - name: Install aditional packages
+    yum:
+      name: '{{ item }}'
+      state: present
+    with_items:
+      - epel-release
+      - libselinux-python
+      - libsemanage-python
+      - policycoreutils-python
+
+  - name: Enable EPEL repo
+    yum_repository:
+      state: present
+      name: epel
+      description: 'Extra Packages for Enterprise Linux 7 - $basearch'
+      mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch'
+      failovermethod: priority
+      enabled: yes
+      gpgcheck: yes
+      gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7'
+
+  - name: Enable and start firewalld
+    service:
+      name: firewalld
+      enabled: yes
+      state: started

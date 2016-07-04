@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+upstream app_servers {
+  {% for machine in machines %}
+    {% if 'app' in machine['role'] %}
+      server {{ machine['role'] }}:{{ app_port }};
+    {% endif %}
+  {% endfor %}
+}
+
+server {
+  listen 80 default_server;
+
+  server_name web;
+
+  access_log /var/log/nginx/web.access.log;
+  error_log /var/log/nginx/web.error.log;
+
+  location / {
+    proxy_pass http://app_servers;
+  }
+}

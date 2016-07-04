@@ -1,0 +1,14 @@
+---
+machines:
+  - role: app1
+    ip: 192.168.33.110
+  - role: app2
+    ip: 192.168.33.111
+  - role: web
+    ip: 192.168.33.100
+
+app_port: 8484
+
+vagrant_template: centos/7
+
+run_tests: false

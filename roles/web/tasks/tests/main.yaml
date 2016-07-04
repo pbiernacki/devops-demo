@@ -1,0 +1,11 @@
+---
+# We need to cheat here a bit because Ansbile filters out
+# duplicated elements, so we add an unused variable ;-)
+  - include: fetch.yaml
+    vars:
+      expected: '{{ item }}'
+    with_items:
+      - {name: 'app1', _: 1}
+      - {name: 'app2', _: 2}
+      - {name: 'app1', _: 3}
+      - {name: 'app2', _: 4}

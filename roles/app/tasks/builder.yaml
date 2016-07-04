@@ -1,0 +1,29 @@
+---
+  - name: Install golang
+    yum:
+      name: golang
+      state: present
+
+  - name: Create temporary directory for a builder
+    file:
+      name: '{{ app_builder_path }}'
+      state: directory
+      owner: root
+      group: root
+      mode: 0755
+
+  - name: Copy app source code to a temporary directory
+    copy:
+      src: files/app.go
+      dest: '{{ app_builder_path }}/app.go'
+      owner: root
+      group: root
+      mode: 0644
+    register: app_source
+
+  - name: Build the app
+    command: go build -o app app.go
+    args:
+        chdir: '{{ app_builder_path }}'
+    when: app_source.changed
+    notify: Restart app

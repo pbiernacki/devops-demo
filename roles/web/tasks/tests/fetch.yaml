@@ -1,0 +1,11 @@
+---
+  - name: Fetching data from web
+    uri:
+      url: 'http://{{ ansible_eth1.ipv4.address }}/'
+      return_content: yes
+    register: web_output
+
+  - name: 'Expecting {{ expected.name }} in return'
+    assert:
+      that:
+        - "'{{ expected.name }}' in web_output.content"

@@ -1,0 +1,50 @@
+---
+  - name: Create the app user
+    user:
+      name: app
+      comment: 'App user managed by Ansible'
+      createhome: no
+      seuser: user_u
+      state: present
+
+  - name: Install app service file
+    template:
+      src: templates/etc/systemd/system/app.service.j2
+      dest: /etc/systemd/system/app.service
+      owner: root
+      group: root
+      mode: 0644
+      seuser: system_u
+      serole: object_r
+      setype: systemd_unit_file_t
+    notify: Restart app
+
+  - name: Enable app service
+    service:
+      name: app
+      enabled: yes
+    notify: Restart app
+
+# This is workaround for a 'Text file busy' error we can hit
+# when overwriting a file that is opened by some process.
+# By removing the old version we allow for the already running
+# process to keep that version for its life time.
+# We intend to restart the application in the next step and kernel
+# will clean the removed file when it's not referenced anymore.
+  - name: Delete old version of app
+    file:
+      dest: /usr/local/bin/app
+      state: absent
+    when: app_source.changed
+
+  - name: Copy app file to app dir
+    command: 'cp {{ app_builder_path }}/app {{ app_runtime_path }}/app'
+    when: app_source.changed
+    notify: Restart app
+
+  - name: 'Allow connection to {{ app_port }}/tcp'
+    firewalld:
+      port: 8484/tcp
+      permanent: true
+      immediate: true
+      state: enabled

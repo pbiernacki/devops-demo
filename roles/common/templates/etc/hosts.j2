@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+127.0.0.1 localhost
+::1 localhost
+
+{% for machine in machines %}
+{{ machine['ip'] }} {{ machine['role'] }}
+{% endfor %}

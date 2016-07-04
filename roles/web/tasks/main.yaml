@@ -1,0 +1,6 @@
+---
+  - include: setup.yaml
+
+  - name: Run tests
+    include: tests/main.yaml
+    when: run_tests

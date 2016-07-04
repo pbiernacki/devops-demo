@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=App
+After=network.target
+
+[Service]
+WorkingDirectory=/var/empty
+ExecStart='{{ app_runtime_path }}/app'
+User=app
+Group=app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
